@@ -13,21 +13,24 @@ docker package dependencies:
       - lxc
       - python-apt
 
+{%- if "version" in docker and docker.version < '1.7.1' %}
 {%- if grains["oscodename"]|lower == 'jessie' %}
 docker package repository:
   pkgrepo.managed:
     - name: deb http://http.debian.net/debian jessie-backports main
 {%- else %}
-{%- if "version" in docker and docker.version < '1.7.1' %}
 docker package repository:
   pkgrepo.managed:
     - name: deb https://get.docker.com/ubuntu docker main
     - humanname: Old Docker Package Repository
     - keyid: d8576a8ba88d21e9
+{%- endif %}
 {%- else %}
 purge old packages:
   pkgrepo.absent:
-    - name: deb https://get.docker.com/ubuntu docker main
+    - name:
+      - deb https://get.docker.com/ubuntu docker main
+      - deb http://http.debian.net/debian jessie-backports main
   pkg.purged:
     - name: lxc-docker*
     - require_in:
@@ -42,7 +45,6 @@ docker package repository:
     - keyserver: keyserver.ubuntu.com
     - file: /etc/apt/sources.list.d/docker.list
     - refresh_db: True
-{%- endif %}
     - require_in:
       - pkg: docker package
     - require:
